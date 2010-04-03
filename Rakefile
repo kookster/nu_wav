@@ -5,12 +5,15 @@ begin
   require 'jeweler'
   Jeweler::Tasks.new do |gem|
     gem.name = "nu_wav"
-    gem.summary = %Q{TODO: one-line summary of your gem}
-    gem.description = %Q{TODO: longer description of your gem}
+    gem.summary = %Q{NuWav is a pure ruby audio WAV file parser and writer.}
+    gem.description = %Q{NuWav is a pure ruby audio WAV file parser and writer.  It supports Broadcast Wave Format (BWF), inclluding MPEG audio data, and the public radio standard cart chunk.}
     gem.email = "andrew@beginsinwonder.com"
     gem.homepage = "http://github.com/kookster/nu_wav"
     gem.authors = ["kookster"]
-    # gem is a Gem::Specification... see http://www.rubygems.org/read/chapter/20 for additional settings
+    gem.add_dependency('ruby-mp3info', '>= 0.6.13')
+    gem.files.exclude ".document"
+    gem.files.exclude ".gitignore"
+    
   end
   Jeweler::GemcutterTasks.new
 rescue LoadError

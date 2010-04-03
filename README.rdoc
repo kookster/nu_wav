@@ -1,6 +1,10 @@
 = nu_wav
 
-Description goes here.
+NuWav is a pure Ruby audio WAVE file parser and writer.
+
+It currently has support for basic WAVE files, Broadcast Wave Format (bext and mext chunks), and cart chunk.
+
+Other chunks types in the WAVE are not yet supported.
 
 == Note on Patches/Pull Requests
  
@@ -14,4 +18,4 @@ Description goes here.
 
 == Copyright
 
-Copyright (c) 2010 kookster. See LICENSE for details.
+Copyright (c) 2010 Andrew Kuklewicz kookster. See LICENSE for details.
