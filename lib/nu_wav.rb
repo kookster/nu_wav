@@ -78,10 +78,15 @@ module NuWav
     def duration
       fmt = @chunks[:fmt]
       
-      if fmt && (fmt.compression_code.to_i == PCM_COMPRESSION)
-        @header.size / (fmt.sample_rate * fmt.number_of_channels * (fmt.sample_bits / 8))
+      if (fmt.compression_code.to_i == PCM_COMPRESSION)
+        data = @chunks[:data]
+        data.size / (fmt.sample_rate * fmt.number_of_channels * (fmt.sample_bits / 8))
+      elsif (fmt.compression_code.to_i == MPEG_COMPRESSION)
+        # <chunk type:fact samples_number:78695424 />
+        fact = @chunks[:fact]
+        fact.samples_number / fmt.sample_rate
       else
-        raise "Duration implemented for WAV files only."
+        raise "Duration implemented for PCM and MEPG files only."
       end
     end
 
