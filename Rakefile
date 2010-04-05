@@ -13,7 +13,7 @@ begin
     gem.add_dependency('ruby-mp3info', '>= 0.6.13')
     gem.files.exclude ".document"
     gem.files.exclude ".gitignore"
-    
+    gem.files.exclude "test/files/**/*"
   end
   Jeweler::GemcutterTasks.new
 rescue LoadError

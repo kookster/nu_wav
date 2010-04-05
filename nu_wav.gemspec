@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{nu_wav}
-  s.version = "0.1.0"
+  s.version = "0.2.0"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["kookster"]
-  s.date = %q{2010-04-03}
+  s.date = %q{2010-04-05}
   s.description = %q{NuWav is a pure ruby audio WAV file parser and writer.  It supports Broadcast Wave Format (BWF), inclluding MPEG audio data, and the public radio standard cart chunk.}
   s.email = %q{andrew@beginsinwonder.com}
   s.extra_rdoc_files = [
@@ -22,6 +22,7 @@ Gem::Specification.new do |s|
      "Rakefile",
      "VERSION",
      "lib/nu_wav.rb",
+     "nu_wav.gemspec",
      "test/helper.rb",
      "test/test_nu_wav.rb"
   ]

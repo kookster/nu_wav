@@ -5,7 +5,7 @@ class TestNuWav < Test::Unit::TestCase
   include NuWav
 
   def test_parse_wav
-    w = WaveFile.parse('./files/test_basic.wav')
+    w = WaveFile.parse(File.expand_path(File.dirname(__FILE__) + '/files/test_basic.wav'))
     assert_equal 4260240, w.header.size
 
     assert_equal 2, w.chunks.size
@@ -23,7 +23,7 @@ class TestNuWav < Test::Unit::TestCase
   end
 
   def test_parse_wav_with_bwf_and_cart_chunk
-    w = WaveFile.parse('./files/AfropopW_040_SGMT01.wav')
+    w = WaveFile.parse(File.expand_path(File.dirname(__FILE__) + '/files/AfropopW_040_SGMT01.wav'))
     assert_equal 6, w.chunks.size
     
     # duration is calculated differently for mpeg and pcm 
