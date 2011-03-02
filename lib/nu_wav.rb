@@ -1,6 +1,10 @@
 # http://www.prss.org/contentdepot/automation_specifications.cfm
 # Bill Kelly <billk <at> cts.com> http://article.gmane.org/gmane.comp.lang.ruby.general/43110
 
+# BWF intro  http://en.wikipedia.org/wiki/Broadcast_Wave_Format
+# BWF basics http://tech.ebu.ch/docs/tech/tech3285.pdf
+# BWF mpeg   http://tech.ebu.ch/docs/tech/tech3285s1.pdf
+
 require 'rubygems'
 require 'mp3info'
 require 'date'
@@ -178,8 +182,12 @@ module NuWav
       
       #mext chunk
       mext = MextChunk.new
-      mext.sound_information =  5
-      mext.sound_information +=  2 if mp3info.header[:padding]
+      # from what I can tell, a 7 indicates a homogenous 44100 or 22050 mpeg audio with no padding
+      mext.sound_information = 7
+      
+      # from what I can tell, a 7 indicates a homogenous 44100 or 22050 mpeg audio with no padding
+      # if there is padding, it is more complicated, see sectin 2.2 here: http://tech.ebu.ch/docs/tech/tech3285s1.pdf
+      mext.sound_information = 5 if mp3info.header[:padding]
       mext.frame_size = calculate_mpeg_frame_size(mp3info)
       mext.ancillary_data_length = 0
       mext.ancillary_data_def = 0
