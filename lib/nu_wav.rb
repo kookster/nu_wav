@@ -1,6 +1,5 @@
 # http://www.prss.org/contentdepot/automation_specifications.cfm
 # Bill Kelly <billk <at> cts.com> http://article.gmane.org/gmane.comp.lang.ruby.general/43110
-
 # BWF intro  http://en.wikipedia.org/wiki/Broadcast_Wave_Format
 # BWF basics http://tech.ebu.ch/docs/tech/tech3285.pdf
 # BWF mpeg   http://tech.ebu.ch/docs/tech/tech3285s1.pdf
@@ -13,7 +12,11 @@ module NuWav
 
   DEBUG = false
 
-  PCM_COMPRESSION = 1
+  # 1 is standard integer based, 3 is the floating point PCM
+  PCM_INTEGER_COMPRESSION = 1
+  PCM_FLOATING_COMPRESSION = 3
+  PCM_COMPRESSION = [PCM_INTEGER_COMPRESSION, PCM_FLOATING_COMPRESSION]
+  
   MPEG_COMPRESSION = 80
   
   ACM_MPEG_LAYER1 = 1
@@ -57,6 +60,7 @@ module NuWav
         f.seek(0)
 
         riff, riff_length = read_chunk_header(f)
+        NuWav::WaveFile.log "riff: #{riff}"
         NuWav::WaveFile.log "riff_length: #{riff_length}"
         raise NotRIFFFormat unless riff == 'RIFF'
         riff_end = f.tell + riff_length
@@ -66,23 +70,34 @@ module NuWav
 
         @header = RiffChunk.new(riff, riff_length, riff_type)
 
-        while f.tell < riff_end
+        while (f.tell + 8) <= riff_end
+          NuWav::WaveFile.log "while #{f.tell} < #{riff_end}"
           chunk_name, chunk_length = read_chunk_header(f)
           fpos = f.tell
 
           NuWav::WaveFile.log "found chunk: '#{chunk_name}', size #{chunk_length}"
-          self.chunks[chunk_name.to_sym] = chunk_class(chunk_name).parse(chunk_name, chunk_length, f)
+          
+          if chunk_name && chunk_length
+            self.chunks[chunk_name.to_sym] = chunk_class(chunk_name).parse(chunk_name, chunk_length, f)
 
-          f.seek(fpos + self.chunks[chunk_name.to_sym].size)
+            NuWav::WaveFile.log "about to do a seek..."
+            NuWav::WaveFile.log "f.seek #{fpos} + #{self.chunks[chunk_name.to_sym].size}"
+            f.seek(fpos + self.chunks[chunk_name.to_sym].size)
+            NuWav::WaveFile.log "seek done"
+          else
+            NuWav::WaveFile.log "chunk or length was off - remainder of file does not parse properly: #{riff_end} - #{fpos} = #{riff_end - fpos}"
+            f.seek(riff_end)
+          end
         end
       end
-      @chunks.each{|k,v| NuWav::WaveFile.log "#{k}: #{v}\n\n" unless k == :data}
+      @chunks.each{|k,v| NuWav::WaveFile.log "#{k}: #{v}\n\n" unless k.to_s == 'data'}
+      NuWav::WaveFile.log "parse done"
     end
 
     def duration
       fmt = @chunks[:fmt]
       
-      if (fmt.compression_code.to_i == PCM_COMPRESSION)
+      if (PCM_COMPRESSION.include?(fmt.compression_code.to_i))
         data = @chunks[:data]
         data.size / (fmt.sample_rate * fmt.number_of_channels * (fmt.sample_bits / 8))
       elsif (fmt.compression_code.to_i == MPEG_COMPRESSION)
@@ -92,6 +107,14 @@ module NuWav
       else
         raise "Duration implemented for PCM and MEPG files only."
       end
+    end
+    
+    def is_mpeg?
+      (@chunks[:fmt] && (@chunks[:fmt].compression_code.to_i == MPEG_COMPRESSION))
+    end
+
+    def is_pcm?
+      (@chunks[:fmt] && (PCM_COMPRESSION.include?(@chunks[:fmt].compression_code.to_i)))
     end
 
     def to_s
@@ -182,12 +205,8 @@ module NuWav
       
       #mext chunk
       mext = MextChunk.new
-      # from what I can tell, a 7 indicates a homogenous 44100 or 22050 mpeg audio with no padding
-      mext.sound_information = 7
-      
-      # from what I can tell, a 7 indicates a homogenous 44100 or 22050 mpeg audio with no padding
-      # if there is padding, it is more complicated, see sectin 2.2 here: http://tech.ebu.ch/docs/tech/tech3285s1.pdf
-      mext.sound_information = 5 if mp3info.header[:padding]
+      mext.sound_information =  5
+      mext.sound_information +=  2 if mp3info.header[:padding]
       mext.frame_size = calculate_mpeg_frame_size(mp3info)
       mext.ancillary_data_length = 0
       mext.ancillary_data_def = 0
@@ -251,7 +270,12 @@ module NuWav
     end
 
     def chunk_class(name)
-      constantize("NuWav::#{camelize("#{name}_chunk")}")
+      begin
+        constantize("NuWav::#{camelize("#{name}_chunk")}")
+      rescue NameError
+        NuWav::Chunk
+      end
+        
     end
     
     # File vendor/rails/activesupport/lib/active_support/inflector.rb, line 147
