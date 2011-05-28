@@ -7,6 +7,7 @@
 require 'rubygems'
 require 'mp3info'
 require 'date'
+require 'tempfile'
 
 module NuWav
 
@@ -54,6 +55,7 @@ module NuWav
     def parse(wave_file)
       NuWav::WaveFile.log "Processing wave file #{wave_file.inspect}...."
       File.open(wave_file, File::RDWR) do |f|
+
         #only for windows, make sure we are operating in binary mode 
         f.binmode
         #start at the very beginning, a very good place to start
@@ -78,6 +80,7 @@ module NuWav
           NuWav::WaveFile.log "found chunk: '#{chunk_name}', size #{chunk_length}"
           
           if chunk_name && chunk_length
+
             self.chunks[chunk_name.to_sym] = chunk_class(chunk_name).parse(chunk_name, chunk_length, f)
 
             NuWav::WaveFile.log "about to do a seek..."
@@ -132,12 +135,16 @@ module NuWav
       NuWav::WaveFile.log "NuWav::WaveFile.to_file: file_name = #{file_name}"
       
       #get all the chunks together to get final length
-      chunks_out = [:fmt, :fact, :mext, :bext, :cart, :data].inject([]) do |list, chunk| 
-        out = self.chunks[chunk].to_binary
-        NuWav::WaveFile.log out.length
-        list << out
+      chunks_out = [:fmt, :fact, :mext, :bext, :cart, :data].inject([]) do |list, chunk|
+        if self.chunks[chunk]
+          out = self.chunks[chunk].to_binary
+          NuWav::WaveFile.log out.length
+          list << out
+        end
         list
       end
+      
+      # TODO: handle other chunks not in the above list, but that might have been in a parsed wav
       
       riff_length = chunks_out.inject(0){|sum, chunk| sum += chunk.size}
       NuWav::WaveFile.log "NuWav::WaveFile.to_file: riff_length = #{riff_length}"
@@ -297,7 +304,7 @@ module NuWav
     
     def self.log(m)
       if NuWav::DEBUG
-        puts "#{Time.now}: NuWav: #{m}"
+        NuWav::WaveFile.log "#{Time.now}: NuWav: #{m}"
       end
     end
 
@@ -333,10 +340,12 @@ module NuWav
     end
 
     def write_dword(val)
+      val ||= 0
       [val].pack('V')
     end
 
     def write_word(val)
+      val ||= 0
       [val].pack('v')
     end
     
@@ -571,16 +580,53 @@ module NuWav
   end  
   
   class DataChunk < Chunk
-    alias_method :data, :raw
-    alias_method :data=, :raw=
+    attr_accessor :tmp_data_file
+    
+    def self.parse(id, size, file)
 
+      # tmp_data = File.open('./data_chunk.mp2', 'wb')
+      tmp_data = Tempfile.open('data_chunk')
+      tmp_data.binmode
+      
+      remaining = size
+      while (remaining > 0 && !file.eof?)
+        read_bytes = [128, remaining].min
+        tmp_data << file.read(read_bytes)
+        remaining -= read_bytes
+      end
+      tmp_data.rewind
+      chunk = self.new(id, size, tmp_data)
+
+      return chunk
+    end
+
+    def initialize(id=nil, size=nil, tmp_data_file=nil)
+      @id, @size, @tmp_data_file = id, size, tmp_data_file
+    end
+    
+    def data
+      f = ''
+      if self.tmp_data_file
+        NuWav::WaveFile.log "we have a tmp_data_file!"
+        self.tmp_data_file.rewind
+        f = self.tmp_data_file.read
+        self.tmp_data_file.rewind
+      else
+        NuWav::WaveFile.log "we have NO tmp_data_file!"
+      end
+      f
+    end
 
     def to_s
       "<chunk type:data (size:#{data.size})/>"
     end
     
     def to_binary
-      out = "data" + write_dword(data.size) + data
+      NuWav::WaveFile.log "data chunk to_binary"
+      d = self.data
+      NuWav::WaveFile.log "got data size = #{d.size} #{d[0,10]}"
+      out = "data" + write_dword(d.size) + d
+      out
     end
     
   end
