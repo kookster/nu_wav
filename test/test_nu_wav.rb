@@ -1,6 +1,7 @@
 require 'helper'
 require 'nu_wav'
 require 'tempfile'
+require 'ftools'
 
 class TestNuWav < Test::Unit::TestCase
   include NuWav
@@ -83,6 +84,12 @@ class TestNuWav < Test::Unit::TestCase
     assert_equal 57040521, w.chunks[:data].size
     memory_usage = `ps -o rss= -p #{Process.pid}`.to_i # in kilobytes
     puts "end of test: #{memory_usage/1024} mb"
+  end
+  
+  def test_from_mpeg
+    w = WaveFile.from_mpeg(File.expand_path(File.dirname(__FILE__) + '/files/test.mp2'))
+    w.to_file('test_from_mpeg.wav')
+    w.write_data_file('test_from_mpeg.mp2')
   end
   
   def unpad(str)

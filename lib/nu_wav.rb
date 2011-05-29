@@ -178,8 +178,7 @@ module NuWav
       wave = WaveFile.new
       
       # data chunk
-      data = DataChunk.new
-      data.data = file.read
+      data = DataChunk.new_from_file(file)
       wave.chunks[:data] = data
 
       # fmt chunk
@@ -598,6 +597,14 @@ module NuWav
       chunk = self.new(id, size, tmp_data)
 
       return chunk
+    end
+    
+    def self.new_from_file(file)
+      tmp_data = Tempfile.open('data_chunk')
+      tmp_data.binmode
+      File.copy(file.path, tmp_data.path)
+      tmp_data.rewind
+      self.new('data', File.size(file.path), tmp_data)
     end
 
     def initialize(id=nil, size=nil, tmp_data_file=nil)
