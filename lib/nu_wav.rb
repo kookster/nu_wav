@@ -303,7 +303,7 @@ module NuWav
     
     def self.log(m)
       if NuWav::DEBUG
-        NuWav::WaveFile.log "#{Time.now}: NuWav: #{m}"
+        puts "#{Time.now}: NuWav: #{m}"
       end
     end
 
