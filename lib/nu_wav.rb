@@ -335,7 +335,7 @@ module NuWav
     end
     
     def read_char(start, length=(@raw.length-start))
-      @raw[start..(start+length-1)]
+      @raw[start..(start+length-1)].strip
     end
 
     def write_dword(val)
