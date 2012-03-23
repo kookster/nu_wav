@@ -8,6 +8,7 @@ require 'rubygems'
 require 'mp3info'
 require 'date'
 require 'tempfile'
+require 'fileutils'
 
 module NuWav
 
@@ -350,6 +351,7 @@ module NuWav
     
     def write_char(val, length=nil)
       val ||= ''
+      val = val.to_s
       length ||= val.length
       # NuWav::WaveFile.log "length:#{length} val.length:#{val.length} val:#{val}"
       padding = "\0" * [(length - val.length), 0].max
@@ -602,9 +604,9 @@ module NuWav
     def self.new_from_file(file)
       tmp_data = Tempfile.open('data_chunk')
       tmp_data.binmode
-      File.copy(file.path, tmp_data.path)
+      FileUtils.cp(file.path, tmp_data.path)
       tmp_data.rewind
-      self.new('data', File.size(file.path), tmp_data)
+      self.new('data', File.size(tmp_data.path).to_s, tmp_data)
     end
 
     def initialize(id=nil, size=nil, tmp_data_file=nil)
