@@ -44,9 +44,7 @@ module NuWav
     attr_accessor :header, :chunks
 
     def self.parse(wave_file)
-      wf = NuWav::WaveFile.new
-      wf.parse(wave_file)
-      wf
+      NuWav::WaveFile.new.parse(wave_file)
     end
 
     def initialize
@@ -55,6 +53,8 @@ module NuWav
     
     def parse(wave_file)
       NuWav::WaveFile.log "Processing wave file #{wave_file.inspect}...."
+      wave_file_size = File.size(wave_file)
+
       File.open(wave_file, File::RDWR) do |f|
 
         #only for windows, make sure we are operating in binary mode 
@@ -65,8 +65,10 @@ module NuWav
         riff, riff_length = read_chunk_header(f)
         NuWav::WaveFile.log "riff: #{riff}"
         NuWav::WaveFile.log "riff_length: #{riff_length}"
+        NuWav::WaveFile.log "wave_file_size: #{wave_file_size}"
+
         raise NotRIFFFormat unless riff == 'RIFF'
-        riff_end = f.tell + riff_length
+        riff_end = [f.tell + riff_length, wave_file_size].min
 
         riff_type = f.read(4)
         raise NotWAVEFormat unless riff_type == 'WAVE'
@@ -96,6 +98,7 @@ module NuWav
       end
       @chunks.each{|k,v| NuWav::WaveFile.log "#{k}: #{v}\n\n" unless k.to_s == 'data'}
       NuWav::WaveFile.log "parse done"
+      self
     end
 
     def duration
@@ -273,7 +276,10 @@ module NuWav
     
     def read_chunk_header(file)
       hdr = file.read(8)
-      chunkName, chunkLen = hdr.unpack("A4V")
+      # puts "hdr: #{hdr}"
+      chunkName, chunkLen = hdr.unpack("A4V") rescue [nil, nil]
+      # puts "chunkName: '#{chunkName}', chunkLen: '#{chunkLen}'"
+      [chunkName, chunkLen]
     end
 
     def chunk_class(name)
