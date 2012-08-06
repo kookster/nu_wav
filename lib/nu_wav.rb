@@ -244,8 +244,8 @@ module NuWav
       cart.start_time = now.strftime("%H:%M:%S")
       cart.end_date = later.strftime("%Y-%m-%d")
       cart.end_time = now.strftime("%H:%M:%S")
-      cart.producer_app_id = 'PRX'
-      cart.producer_app_version = '3.0'
+      cart.producer_app_id = 'NuWav'
+      cart.producer_app_version = '1.0'
       cart.level_reference = 0
       cart.tag_text = "\r\n"
       wave.chunks[:cart] = cart
@@ -540,7 +540,7 @@ module NuWav
       @client_id =            read_char(196,64)
       @category =             read_char(260,64)
       @classification =       read_char(324,64)
-      @out_cue =               read_char(388,64)
+      @out_cue =              read_char(388,64)
       @start_date =           read_char(452,10)
       @start_time =           read_char(462,8)
       @end_date =             read_char(470,10)
