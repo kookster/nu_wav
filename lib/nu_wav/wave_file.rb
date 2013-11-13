@@ -55,7 +55,7 @@ module NuWav
 
             if parsed_chunk_size.odd?
               pad = f.read(1)
-              f.seek(-1) if pad.ord != 0
+              f.seek(fpos + parsed_chunk_size) if (pad.nil? || pad.ord != 0)
             end
 
           else

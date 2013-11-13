@@ -39,14 +39,14 @@ class TestNuWav < Test::Unit::TestCase
     memory_usage = `ps -o rss= -p #{Process.pid}`.to_i # in kilobytes
     # puts "begin test: #{memory_usage/1024} mb"
     
-    w = WaveFile.parse(File.expand_path(File.dirname(__FILE__) + '/files/AfropopW_040_SGMT01.wav'))
+    w = WaveFile.parse(File.expand_path(File.dirname(__FILE__) + '/files/test_bwf.wav'))
     memory_usage = `ps -o rss= -p #{Process.pid}`.to_i # in kilobytes
     # puts "after parse: #{memory_usage/1024} mb"
     
     assert_equal 6, w.chunks.size
     
     # duration is calculated differently for mpeg and pcm 
-    assert_equal 1784, w.duration
+    assert_equal 60, w.duration
 
     # fmt
     assert_equal 2, w.chunks[:fmt].number_of_channels
@@ -58,34 +58,34 @@ class TestNuWav < Test::Unit::TestCase
     assert_equal 2, w.chunks[:fmt].head_layer
     assert_equal 256000, w.chunks[:fmt].head_bit_rate
     assert_equal 1, w.chunks[:fmt].head_mode
-    assert_equal 1, w.chunks[:fmt].head_mode_ext
-    assert_equal 0, w.chunks[:fmt].head_emphasis
-    assert_equal 28, w.chunks[:fmt].head_flags
+    assert_equal 0, w.chunks[:fmt].head_mode_ext
+    assert_equal 1, w.chunks[:fmt].head_emphasis
+    assert_equal 30, w.chunks[:fmt].head_flags
 
     # fact
-    assert_equal 78695424, w.chunks[:fact].samples_number
+    assert_equal 2646144, w.chunks[:fact].samples_number
     
     # mext
-    assert_equal 7, w.chunks[:mext].sound_information
+    assert_equal 5, w.chunks[:mext].sound_information
     assert_equal 835, w.chunks[:mext].frame_size
     
     # bext
-    assert_equal "A=MPEG1L2,F=44100,B=256,M=STEREO,T=CV_PcxTl2NP", unpad(w.chunks[:bext].coding_history)
+    assert_equal "A=MPEG1L2,F=44100,B=256,M=stereo,T=PRX", unpad(w.chunks[:bext].coding_history)
     
     # cart
     assert_equal '0101', w.chunks[:cart].version
-    assert_equal 'Afropop 070524_Episode on 05/24/2007_sgmt 1', unpad(w.chunks[:cart].title)
-    assert_equal 'Georges Collinet', unpad(w.chunks[:cart].artist)
-    assert_equal '60314', unpad(w.chunks[:cart].cut_id)
-    assert_equal '2007/05/24', unpad(w.chunks[:cart].start_date)
-    assert_equal '16:00:00', unpad(w.chunks[:cart].start_time)
-    assert_equal '2007/06/24', unpad(w.chunks[:cart].end_date)
-    assert_equal '16:00:00', unpad(w.chunks[:cart].end_time)
-    assert_equal 'ContentDepot', unpad(w.chunks[:cart].producer_app_id)
+    assert_equal "5: 415: Sound Opinions Show, 11/8/2013", unpad(w.chunks[:cart].title)
+    assert_equal "Sound Opinions", unpad(w.chunks[:cart].artist)
+    assert_equal '30014', unpad(w.chunks[:cart].cut_id)
+    assert_equal '2013/11/08', unpad(w.chunks[:cart].start_date)
+    assert_equal '00:00:00', unpad(w.chunks[:cart].start_time)
+    assert_equal '2013/11/14', unpad(w.chunks[:cart].end_date)
+    assert_equal '23:59:59', unpad(w.chunks[:cart].end_time)
+    assert_equal 'PRX', unpad(w.chunks[:cart].producer_app_id)
     assert_equal '1.0', unpad(w.chunks[:cart].producer_app_version)
 
     # data
-    assert_equal 57040521, w.chunks[:data].size
+    assert_equal 1917995, w.chunks[:data].size
     memory_usage = `ps -o rss= -p #{Process.pid}`.to_i # in kilobytes
     # puts "end of test: #{memory_usage/1024} mb"
   end
