@@ -1,16 +1,15 @@
 require 'helper'
 require 'nu_wav'
 require 'tempfile'
-require 'ftools'
 
 class TestNuWav < Test::Unit::TestCase
   include NuWav
 
   def test_parse_wav
     memory_usage = `ps -o rss= -p #{Process.pid}`.to_i # in kilobytes
-    puts "begin test: #{memory_usage/1024} mb"
+    # puts "begin test: #{memory_usage/1024} mb"
     w = WaveFile.parse(File.expand_path(File.dirname(__FILE__) + '/files/test_basic.wav'))
-    puts w
+    # puts w
     assert_equal 4260240, w.header.size
 
     assert_equal 2, w.chunks.size
@@ -25,19 +24,24 @@ class TestNuWav < Test::Unit::TestCase
     
     data = w.chunks[:data]
     assert_equal 4260204, data.size
-    
+
+    File.delete('test_out.wav') rescue nil
     w.to_file('test_out.wav')
+    assert File.exists?('test_out.wav')
+    assert_equal File.size('test_out.wav'), 4260250
+
     memory_usage = `ps -o rss= -p #{Process.pid}`.to_i # in kilobytes
-    puts "end of test: #{memory_usage/1024} mb"
+    # puts "end of test: #{memory_usage/1024} mb"
+    File.delete('test_out.wav')    
   end
 
   def test_parse_wav_with_bwf_and_cart_chunk
     memory_usage = `ps -o rss= -p #{Process.pid}`.to_i # in kilobytes
-    puts "begin test: #{memory_usage/1024} mb"
+    # puts "begin test: #{memory_usage/1024} mb"
     
     w = WaveFile.parse(File.expand_path(File.dirname(__FILE__) + '/files/AfropopW_040_SGMT01.wav'))
     memory_usage = `ps -o rss= -p #{Process.pid}`.to_i # in kilobytes
-    puts "after parse: #{memory_usage/1024} mb"
+    # puts "after parse: #{memory_usage/1024} mb"
     
     assert_equal 6, w.chunks.size
     
@@ -66,7 +70,7 @@ class TestNuWav < Test::Unit::TestCase
     assert_equal 835, w.chunks[:mext].frame_size
     
     # bext
-    assert_equal "A=MPEG1L2,F=44100,B=256,M=STEREO,T=CV_PcxTl2NP\r\n", unpad(w.chunks[:bext].coding_history)
+    assert_equal "A=MPEG1L2,F=44100,B=256,M=STEREO,T=CV_PcxTl2NP", unpad(w.chunks[:bext].coding_history)
     
     # cart
     assert_equal '0101', w.chunks[:cart].version
@@ -83,13 +87,24 @@ class TestNuWav < Test::Unit::TestCase
     # data
     assert_equal 57040521, w.chunks[:data].size
     memory_usage = `ps -o rss= -p #{Process.pid}`.to_i # in kilobytes
-    puts "end of test: #{memory_usage/1024} mb"
+    # puts "end of test: #{memory_usage/1024} mb"
   end
   
   def test_from_mpeg
     w = WaveFile.from_mpeg(File.expand_path(File.dirname(__FILE__) + '/files/test.mp2'))
+
+    File.delete('test_from_mpeg.wav') rescue nil
     w.to_file('test_from_mpeg.wav')
+    assert File.exists?('test_from_mpeg.wav')
+    assert_equal File.size('test_from_mpeg.wav'), 182522
+    File.delete('test_from_mpeg.wav')
+
+
+    File.delete('test_from_mpeg.mp2') rescue nil
     w.write_data_file('test_from_mpeg.mp2')
+    assert File.exists?('test_from_mpeg.mp2')
+    assert_equal File.size('test_from_mpeg.mp2'), 179712
+    File.delete('test_from_mpeg.mp2')
   end
   
   def unpad(str)
