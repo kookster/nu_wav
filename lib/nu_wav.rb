@@ -11,6 +11,7 @@ require 'tempfile'
 require 'fileutils'
 
 require "nu_wav/version"
+require "nu_wav/chunk"
 require "nu_wav/wave_file"
 
 module NuWav
