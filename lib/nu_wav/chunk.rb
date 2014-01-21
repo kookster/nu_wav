@@ -275,7 +275,7 @@ module NuWav
     def self.parse(id, size, file)
 
       # tmp_data = File.open('./data_chunk.mp2', 'wb')
-      tmp_data = Tempfile.open('data_chunk')
+      tmp_data = NuWav.temp_file('data_chunk', true)
       tmp_data.binmode
       
       remaining = size
@@ -291,7 +291,7 @@ module NuWav
     end
     
     def self.new_from_file(file)
-      tmp_data = Tempfile.open('data_chunk')
+      tmp_data = NuWav.temp_file('data_chunk', true)
       tmp_data.binmode
       FileUtils.cp(file.path, tmp_data.path)
       tmp_data.rewind
@@ -326,6 +326,5 @@ module NuWav
       out = "data" + write_dword(d.size) + d
       out
     end
-    
   end
 end

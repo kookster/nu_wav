@@ -18,6 +18,8 @@ module NuWav
 
   DEBUG = ENV['NU_WAV_DEBUG']
 
+  TMP_FILE_DIR = ENV['NU_WAV_TMP_DIR'] || '/tmp/'
+
   # 1 is standard integer based, 3 is the floating point PCM
   PCM_INTEGER_COMPRESSION = 1
   PCM_FLOATING_COMPRESSION = 3
@@ -42,5 +44,13 @@ module NuWav
 
   class NotRIFFFormat < StandardError; end
   class NotWAVEFormat < StandardError; end
+
+  def self.temp_file(base_file_name=nil, keep_open=false, keep_textmode=false)
+    FileUtils.mkdir_p(NuWav::TMP_FILE_DIR) unless File.exists?(NuWav::TMP_FILE_DIR)
+    Tempfile.new(base_file_name, NuWav::TMP_FILE_DIR).tap do |tmp|
+      tmp.binmode unless keep_textmode
+      tmp.close   unless keep_open
+    end
+  end
 
 end
