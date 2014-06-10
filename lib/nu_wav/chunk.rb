@@ -324,6 +324,10 @@ module NuWav
       d = self.data
       NuWav::WaveFile.log "got data size = #{d.size} #{d[0,10]}"
       out = "data" + write_dword(d.size) + d
+      if d.size.odd?
+        NuWav::WaveFile.log "odd, adding a pad byte"
+        out += "\0"
+      end
       out
     end
   end
