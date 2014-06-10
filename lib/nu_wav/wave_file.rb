@@ -54,8 +54,12 @@ module NuWav
             NuWav::WaveFile.log "seek done"
 
             if parsed_chunk_size.odd?
+              NuWav::WaveFile.log("parsed_chunk_size is ODD #{chunk_name}: #{parsed_chunk_size}")
               pad = f.read(1)
-              f.seek(fpos + parsed_chunk_size) if (pad.nil? || pad.ord != 0)
+              if (pad.nil? || pad.ord != 0)
+                NuWav::WaveFile.log("NOT PADDED")
+                f.seek(fpos + parsed_chunk_size)
+              end
             end
 
           else
