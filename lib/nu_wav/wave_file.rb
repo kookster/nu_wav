@@ -104,8 +104,8 @@ module NuWav
       end
     end
 
-    def to_file(file_name, add_extension=false)
-      if add_extension && !(file_name =~ /\.wav/)
+    def to_file(file_name, options={})
+      if options[:add_extension] && !(file_name =~ /\.wav/)
         file_name += ".wav"
       end
       NuWav::WaveFile.log "NuWav::WaveFile.to_file: file_name = #{file_name}"
@@ -113,7 +113,7 @@ module NuWav
       #get all the chunks together to get final length
       chunks_out = [:fmt, :fact, :mext, :bext, :cart, :data].inject([]) do |list, chunk|
         if self.chunks[chunk]
-          out = self.chunks[chunk].to_binary
+          out = self.chunks[chunk].to_binary(options)
           NuWav::WaveFile.log out.length
           list << out
         end

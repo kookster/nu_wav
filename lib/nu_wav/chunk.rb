@@ -49,7 +49,7 @@ module NuWav
       out
     end
     
-    def to_binary
+    def to_binary(options={})
     end
   end
 
@@ -94,7 +94,7 @@ module NuWav
       end
     end
 
-    def to_binary
+    def to_binary(options={})
       out = ''
       out += write_word(@compression_code)
       out += write_word(@number_of_channels)
@@ -138,7 +138,7 @@ module NuWav
       "<chunk type:fact samples_number:#{@samples_number} />"
     end
     
-    def to_binary
+    def to_binary(options={})
       "fact" + write_dword(4) + write_dword(@samples_number)
     end
     
@@ -159,7 +159,7 @@ module NuWav
       "<chunk type:mext sound_information:(#{sound_information}) #{(0..15).inject(''){|s,x| "#{s}#{sound_information[x]}"}}, frame_size:#{frame_size}, ancillary_data_length:#{ancillary_data_length}, ancillary_data_def:#{(0..15).inject(''){|s,x| "#{s}#{ancillary_data_def[x]}"}}, reserved:'#{reserved}' />"
     end
     
-    def to_binary
+    def to_binary(options={})
       out = "mext" + write_dword(12)
       out += write_word(@sound_information)
       out += write_word(@frame_size)
@@ -192,7 +192,7 @@ module NuWav
       "<chunk type:bext description:'#{description}', originator:'#{originator}', originator_reference:'#{originator_reference}', origination_date:'#{origination_date}', origination_time:'#{origination_time}', time_reference_low:#{time_reference_low}, time_reference_high:#{time_reference_high}, version:#{version}, umid:#{umid}, reserved:'#{reserved}', coding_history:#{coding_history} />"
     end
 
-    def to_binary
+    def to_binary(options={})
       out = "bext" + write_dword(602 + @coding_history.length )
       out += write_char(@description, 256)
       out += write_char(@originator, 32)
@@ -242,7 +242,7 @@ module NuWav
       "<chunk type:cart version:#{version}, title:#{title}, artist:#{artist}, cut_id:#{cut_id}, client_id:#{client_id}, category:#{category}, classification:#{classification}, out_cue:#{out_cue}, start_date:#{start_date}, start_time:#{start_time}, end_date:#{end_date}, end_time:#{end_time}, producer_app_id:#{producer_app_id}, producer_app_version:#{producer_app_version}, user_def:#{user_def}, level_reference:#{level_reference}, post_timer:#{post_timer}, reserved:#{reserved}, url:#{url}, tag_text:#{tag_text} />"
     end
     
-    def to_binary
+    def to_binary(options={})
       out = "cart" + write_dword(2048 + @tag_text.length )
       out += write_char(@version,4)
       out += write_char(@title,64)
@@ -319,12 +319,12 @@ module NuWav
       "<chunk type:data (size:#{data.size})/>"
     end
     
-    def to_binary
+    def to_binary(options={})
       NuWav::WaveFile.log "data chunk to_binary"
       d = self.data
       NuWav::WaveFile.log "got data size = #{d.size} #{d[0,10]}"
       out = "data" + write_dword(d.size) + d
-      if d.size.odd?
+      if d.size.odd? && !options[:no_pad_byte]
         NuWav::WaveFile.log "odd, adding a pad byte"
         out += "\0"
       end

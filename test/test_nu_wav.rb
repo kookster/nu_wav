@@ -98,15 +98,34 @@ class TestNuWav < Test::Unit::TestCase
     assert File.exists?('test_from_mpeg.wav')
     assert_equal File.size('test_from_mpeg.wav'), 182522
     File.delete('test_from_mpeg.wav')
-
-
-    File.delete('test_from_mpeg.mp2') rescue nil
-    w.write_data_file('test_from_mpeg.mp2')
-    assert File.exists?('test_from_mpeg.mp2')
-    assert_equal File.size('test_from_mpeg.mp2'), 179712
-    File.delete('test_from_mpeg.mp2')
   end
-  
+
+  def test_from_mpeg_no_pad
+    w = WaveFile.from_mpeg(File.expand_path(File.dirname(__FILE__) + '/files/test_odd.mp2'))
+
+    File.delete('test_no_pad.wav') rescue nil
+    w.to_file('test_no_pad.wav')
+    assert File.exists?('test_no_pad.wav')
+    assert_equal File.size('test_no_pad.wav'), 962226
+    File.delete('test_no_pad.wav')
+
+    File.delete('test_no_pad.wav') rescue nil
+    w.to_file('test_no_pad.wav', {:no_pad_byte=>true})
+    assert File.exists?('test_no_pad.wav')
+    assert_equal File.size('test_no_pad.wav'), 962225
+    File.delete('test_no_pad.wav')
+  end
+
+  def test_write_data_file
+    w = WaveFile.from_mpeg(File.expand_path(File.dirname(__FILE__) + '/files/test.mp2'))
+
+    File.delete('test_write_data_file.mp2') rescue nil
+    w.write_data_file('test_write_data_file.mp2')
+    assert File.exists?('test_write_data_file.mp2')
+    assert_equal File.size('test_write_data_file.mp2'), 179712
+    File.delete('test_write_data_file.mp2')
+  end
+
   def unpad(str)
     str.gsub(/\0*$/, '')
   end
