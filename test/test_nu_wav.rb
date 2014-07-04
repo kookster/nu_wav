@@ -107,12 +107,16 @@ class TestNuWav < Test::Unit::TestCase
     w.to_file('test_no_pad.wav')
     assert File.exists?('test_no_pad.wav')
     assert_equal File.size('test_no_pad.wav'), 962226
+    nw = WaveFile.parse('test_no_pad.wav')
+    assert nw.chunks[:data].pad_byte
     File.delete('test_no_pad.wav')
 
     File.delete('test_no_pad.wav') rescue nil
     w.to_file('test_no_pad.wav', {:no_pad_byte=>true})
     assert File.exists?('test_no_pad.wav')
     assert_equal File.size('test_no_pad.wav'), 962225
+    nw = WaveFile.parse('test_no_pad.wav')
+    assert !nw.chunks[:data].pad_byte
     File.delete('test_no_pad.wav')
   end
 

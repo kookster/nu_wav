@@ -1,6 +1,6 @@
 module NuWav
   class Chunk
-    attr_accessor :id, :size, :raw
+    attr_accessor :id, :size, :raw, :pad_byte
     
     def self.parse(id, size, file)
       raw = file.read(size)

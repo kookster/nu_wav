@@ -58,7 +58,10 @@ module NuWav
               pad = f.read(1)
               if (pad.nil? || pad.ord != 0)
                 NuWav::WaveFile.log("NOT PADDED")
+                self.chunks[chunk_name.to_sym].pad_byte = false
                 f.seek(fpos + parsed_chunk_size)
+              else
+                self.chunks[chunk_name.to_sym].pad_byte = true
               end
             end
 
