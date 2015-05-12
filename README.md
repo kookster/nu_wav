@@ -1,4 +1,4 @@
-= NuWav Ruby Gem (nu_wav)
+# NuWav Ruby Gem (nu_wav)
 
 [![Build Status](https://travis-ci.org/kookster/nu_wav.png?branch=master)](https://travis-ci.org/kookster/nu_wav)
 
@@ -9,7 +9,7 @@ It will parse other chunks, but doesn't necessarily provide specific parsing for
 
 It will look for a class based on the chunk name, so if you want to add 'fact' chunk parsing, you need to define a class like this (n.b. 'fact' chunks are already supported, this is an example from the code):
 
-```
+```ruby
 module NuWav
   class FactChunk < NuWav::Chunk
     attr_accessor :samples_number
@@ -30,7 +30,7 @@ module NuWav
 end
 ```
 
-== Note on Patches/Pull Requests
+## Note on Patches/Pull Requests
  
 * Fork the project.
 * Make your feature addition or bug fix.
@@ -40,6 +40,6 @@ end
   (if you want to have your own version, that is fine but bump version in a commit by itself I can ignore when I pull)
 * Send me a pull request. Bonus points for topic branches.
 
-== Copyright
+## Copyright
 
 Copyright (c) 2010 Andrew Kuklewicz kookster. See LICENSE for details.
