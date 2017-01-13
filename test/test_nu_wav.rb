@@ -89,6 +89,44 @@ class TestNuWav < Test::Unit::TestCase
     memory_usage = `ps -o rss= -p #{Process.pid}`.to_i # in kilobytes
     # puts "end of test: #{memory_usage/1024} mb"
   end
+
+  def test_parse_mbwf
+    w = WaveFile.parse(File.expand_path(File.dirname(__FILE__) + '/files/bext_rf64.wav'))
+
+    assert_equal 6, w.chunks.size
+
+    # duration is calculated differently for mpeg and pcm
+    assert_equal 7456, w.duration
+
+    # fmt
+    assert_equal 2, w.chunks[:fmt].number_of_channels
+    assert_equal 96000, w.chunks[:fmt].sample_rate
+    assert_equal 576000, w.chunks[:fmt].byte_rate
+    assert_equal 6, w.chunks[:fmt].block_align
+    assert_equal 24, w.chunks[:fmt].sample_bits
+    assert_equal 0, w.chunks[:fmt].extra_size
+    assert_equal nil, w.chunks[:fmt].head_layer
+    assert_equal nil, w.chunks[:fmt].head_bit_rate
+    assert_equal nil, w.chunks[:fmt].head_mode
+    assert_equal nil, w.chunks[:fmt].head_mode_ext
+    assert_equal nil, w.chunks[:fmt].head_emphasis
+    assert_equal nil, w.chunks[:fmt].head_flags
+
+    # fact
+    assert_equal nil, w.chunks[:fact]
+
+    # mext
+    assert_equal nil, w.chunks[:mext]
+
+    # bext
+    assert_equal "", unpad(w.chunks[:bext].coding_history)
+
+    # cart
+    assert_equal nil, w.chunks[:cart]
+
+    # data
+    assert_equal 4294967295, w.chunks[:data].size
+  end
   
   def test_from_mpeg
     w = WaveFile.from_mpeg(File.expand_path(File.dirname(__FILE__) + '/files/test.mp2'))

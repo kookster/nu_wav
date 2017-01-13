@@ -28,7 +28,7 @@ module NuWav
         NuWav::WaveFile.log "riff_length: #{riff_length}"
         NuWav::WaveFile.log "wave_file_size: #{wave_file_size}"
 
-        raise NotRIFFFormat unless riff == 'RIFF'
+        raise NotRIFFFormat unless riff == 'RIFF' || riff == 'RF64'
         riff_end = [f.tell + riff_length, wave_file_size].min
 
         riff_type = f.read(4)
