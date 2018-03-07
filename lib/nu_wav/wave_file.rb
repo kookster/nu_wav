@@ -1,7 +1,7 @@
 module NuWav
 
   class WaveFile
-    
+
     attr_accessor :header, :chunks
 
     def self.parse(wave_file)
@@ -11,14 +11,14 @@ module NuWav
     def initialize
       self.chunks = {}
     end
-    
+
     def parse(wave_file)
       NuWav::WaveFile.log "Processing wave file #{wave_file.inspect}...."
       wave_file_size = File.size(wave_file)
 
-      File.open(wave_file, File::RDWR) do |f|
+      File.open(wave_file, File::RDONLY) do |f|
 
-        #only for windows, make sure we are operating in binary mode 
+        #only for windows, make sure we are operating in binary mode
         f.binmode
         #start at the very beginning, a very good place to start
         f.seek(0)
@@ -42,7 +42,7 @@ module NuWav
           fpos = f.tell
 
           NuWav::WaveFile.log "found chunk: '#{chunk_name}', size #{chunk_length}"
-          
+
           if chunk_name && chunk_length
 
             self.chunks[chunk_name.to_sym] = chunk_class(chunk_name).parse(chunk_name, chunk_length, f)
@@ -78,7 +78,7 @@ module NuWav
 
     def duration
       fmt = @chunks[:fmt]
-      
+
       if (PCM_COMPRESSION.include?(fmt.compression_code.to_i))
         data = @chunks[:data]
         data.size / (fmt.sample_rate * fmt.number_of_channels * (fmt.sample_bits / 8))
@@ -90,7 +90,7 @@ module NuWav
         raise "Duration implemented for PCM and MEPG files only."
       end
     end
-    
+
     def is_mpeg?
       (@chunks[:fmt] && (@chunks[:fmt].compression_code.to_i == MPEG_COMPRESSION))
     end
@@ -101,7 +101,7 @@ module NuWav
 
     def to_s
       out = "NuWav:#{@header}\n"
-      out = [:fmt, :fact, :mext, :bext, :cart, :data ].inject(out) do |s, chunk| 
+      out = [:fmt, :fact, :mext, :bext, :cart, :data ].inject(out) do |s, chunk|
         s += "#{self.chunks[chunk]}\n" if self.chunks[chunk]
         s
       end
@@ -112,7 +112,7 @@ module NuWav
         file_name += ".wav"
       end
       NuWav::WaveFile.log "NuWav::WaveFile.to_file: file_name = #{file_name}"
-      
+
       #get all the chunks together to get final length
       chunks_out = [:fmt, :fact, :mext, :bext, :cart, :data].inject([]) do |list, chunk|
         if self.chunks[chunk]
@@ -122,12 +122,12 @@ module NuWav
         end
         list
       end
-      
+
       # TODO: handle other chunks not in the above list, but that might have been in a parsed wav
-      
+
       riff_length = chunks_out.inject(0){|sum, chunk| sum += chunk.size}
       NuWav::WaveFile.log "NuWav::WaveFile.to_file: riff_length = #{riff_length}"
-      
+
       #open file for writing
       open(file_name, "wb") do |o|
         #write the header
@@ -136,18 +136,18 @@ module NuWav
         o <<  "WAVE"
         #write the chunks
         chunks_out.each{|c| o << c}
-      end      
+      end
 
     end
-    
+
     def write_data_file(file_name)
       open(file_name, "wb") do |o|
         o << chunks[:data].data
-      end      
+      end
     end
 
-    
-    # method to create a wave file using the 
+
+    # method to create a wave file using the
     def self.from_mpeg(file_name)
       # read and display infos & tags
       NuWav::WaveFile.log "NuWav::from_mpeg::file_name:#{file_name}"
@@ -155,7 +155,7 @@ module NuWav
       NuWav::WaveFile.log mp3info
       file = File.open(file_name)
       wave = WaveFile.new
-      
+
       # data chunk
       data = DataChunk.new_from_file(file)
       wave.chunks[:data] = data
@@ -181,13 +181,13 @@ module NuWav
       fmt.pts_high = 0
       wave.chunks[:fmt] = fmt
       # NuWav::WaveFile.log "fmt: #{fmt}"
-      
+
       # fact chunk
       fact = FactChunk.new
       fact.samples_number = calculate_mpeg_samples_number(file, mp3info)
       wave.chunks[:fact] = fact
       # NuWav::WaveFile.log "fact: #{fact}"
-      
+
       #mext chunk
       mext = MextChunk.new
       mext.sound_information =  5
@@ -197,8 +197,8 @@ module NuWav
       mext.ancillary_data_def = 0
       wave.chunks[:mext] = mext
       # NuWav::WaveFile.log "mext: #{mext}"
-      
-      
+
+
       #bext chunk
       bext = BextChunk.new
       bext.time_reference_high = 0
@@ -207,7 +207,7 @@ module NuWav
       bext.coding_history = "A=MPEG1L#{mp3info.layer},F=#{mp3info.samplerate},B=#{mp3info.bitrate},M=#{CODING_HISTORY_MODE[mp3info.channel_mode]},T=PRX\r\n\0\0"
       wave.chunks[:bext] = bext
       # NuWav::WaveFile.log "bext: #{bext}"
-      
+
       #cart chunk
       cart = CartChunk.new
       now = Time.now
@@ -227,11 +227,11 @@ module NuWav
       # NuWav::WaveFile.log "cart: #{cart}"
       wave
     end
-    
+
     def self.calculate_mpeg_samples_number(file, info)
       (File.size(file.path) / calculate_mpeg_frame_size(info)) * Mp3Info::SAMPLES_PER_FRAME[info.layer][info.mpeg_version]
     end
-    
+
     def self.calculate_mpeg_head_flags(info)
       flags = 0
       flags += 1 if (info.header[:private_bit])
@@ -241,14 +241,14 @@ module NuWav
       flags += 16 if (info.mpeg_version > 0)
       flags
     end
-    
+
     def self.calculate_mpeg_frame_size(info)
       samples_per_frame = Mp3Info::SAMPLES_PER_FRAME[info.layer][info.mpeg_version]
       ((samples_per_frame / 8) * (info.bitrate * 1000))/info.samplerate
     end
 
     protected
-    
+
     def read_chunk_header(file)
       hdr = file.read(8)
       chunkName, chunkLen = hdr.unpack("A4V") rescue [nil, nil]
@@ -262,9 +262,9 @@ module NuWav
       rescue NameError
         NuWav::Chunk
       end
-        
+
     end
-    
+
     # File vendor/rails/activesupport/lib/active_support/inflector.rb, line 147
     def camelize(lower_case_and_underscored_word, first_letter_in_uppercase = true)
       if first_letter_in_uppercase
@@ -281,7 +281,7 @@ module NuWav
       end
       Object.module_eval("::#{$1}", __FILE__, __LINE__)
     end
-    
+
     def self.log(m)
       if NuWav::DEBUG
         puts "#{Time.now}: NuWav: #{m}"
