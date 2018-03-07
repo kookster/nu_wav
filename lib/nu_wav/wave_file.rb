@@ -16,7 +16,7 @@ module NuWav
       NuWav::WaveFile.log "Processing wave file #{wave_file.inspect}...."
       wave_file_size = File.size(wave_file)
 
-      File.open(wave_file, File::RDWR) do |f|
+      File.open(wave_file, 'r') do |f|
 
         #only for windows, make sure we are operating in binary mode 
         f.binmode
